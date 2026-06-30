@@ -42,7 +42,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { name: 'Overview', href: '/dashboard' },
     { name: 'User Management', href: '/dashboard/users' },
-    { name: 'Inventory Lookup', href: '/dashboard/inventory' },
+    { name: 'Sports Directory', href: '/dashboard/sports' },
+    { name: 'Brands Directory', href: '/dashboard/brands' },
+    { name: 'Product Categories', href: '/dashboard/categories' },
+    { name: 'Product Catalog', href: '/dashboard/products' },
+    { name: 'Inventory Control', href: '/dashboard/inventory' },
     { name: 'Rentals Console', href: '/dashboard/rentals' },
     { name: 'Matches & Score', href: '/dashboard/matches' },
   ];

@@ -69,3 +69,113 @@ model VerificationCode {
 
   @@map("verification_codes")
 }
+
+model Sport {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  products    Product[]
+
+  @@map("sports")
+}
+
+model Brand {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  products    Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id        String     @id @default(uuid()) @db.Uuid
+  parentId  String?    @map("parent_id") @db.Uuid
+  parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+  name      String
+  slug      String     @unique
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  deletedAt DateTime?  @map("deleted_at")
+  products  Product[]
+
+  @@map("categories")
+}
+
+enum ProductType {
+  retail
+  rental
+  hybrid
+}
+
+model Product {
+  id              String          @id @default(uuid()) @db.Uuid
+  sportId         String          @map("sport_id") @db.Uuid
+  sport           Sport           @relation(fields: [sportId], references: [id])
+  brandId         String          @map("brand_id") @db.Uuid
+  brand           Brand           @relation(fields: [brandId], references: [id])
+  categoryId      String          @map("category_id") @db.Uuid
+  category        Category        @relation(fields: [categoryId], references: [id])
+  name            String
+  slug            String          @unique
+  description     String?
+  type            ProductType
+  retailPrice     Decimal?        @map("retail_price") @db.Decimal(12, 2)
+  baseRentalRate  Decimal?        @map("base_rental_rate") @db.Decimal(12, 2)
+  securityDeposit Decimal?        @map("security_deposit") @db.Decimal(12, 2)
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
+  images          ProductImage[]
+  inventoryUnits  InventoryUnit[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("product_images")
+}
+
+enum InventoryStatus {
+  available
+  reserved
+  rented
+  maintenance
+  damaged
+}
+
+model InventoryUnit {
+  id            String          @id @default(uuid()) @db.Uuid
+  productId     String          @map("product_id") @db.Uuid
+  product       Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  serialNumber  String?         @map("serial_number")
+  inventoryCode String          @unique @map("inventory_code")
+  barcode       String?
+  qrCode        String?         @map("qr_code")
+  status        InventoryStatus @default(available)
+  branch        String          @default("Main")
+  purchaseDate  DateTime?       @map("purchase_date")
+  condition     String          @default("excellent")
+  availability  Boolean         @default(true)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@map("inventory_units")
+}
