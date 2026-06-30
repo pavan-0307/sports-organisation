@@ -1,8 +1,15 @@
-export default function RootLayout({ children }) {
+import '../styles/globals.css';
+import React from 'react';
+import { AuthProvider } from '../context/AuthContext';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head />
-      <body className="bg-white text-black p-4">{children}</body>
+    <html lang="en" className="h-full">
+      <body className="h-full bg-slate-950 text-slate-50 antialiased">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "jsx": "preserve",
     "outDir": "dist",
-    "rootDir": "src",
+
     "baseUrl": ".",
     "paths": {
       "@ui/*": [

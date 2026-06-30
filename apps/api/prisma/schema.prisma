@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  guest
+  customer
+  staff
+  admin
+  super_admin
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+}
+
+model User {
+  id                String             @id @default(uuid()) @db.Uuid
+  email             String             @unique
+  passwordHash      String             @map("password_hash")
+  phone             String?
+  firstName         String             @map("first_name")
+  lastName          String             @map("last_name")
+  role              UserRole           @default(customer)
+  status            UserStatus         @default(active)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  deletedAt         DateTime?          @map("deleted_at")
+  refreshTokens     RefreshToken[]
+  verificationCodes VerificationCode[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jti       String    @unique
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  @@map("refresh_tokens")
+}
+
+enum VerificationCodeType {
+  email_verification
+  login_otp
+  password_reset
+}
+
+model VerificationCode {
+  id         String               @id @default(uuid()) @db.Uuid
+  userId     String               @map("user_id") @db.Uuid
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code       String
+  type       VerificationCodeType
+  expiresAt  DateTime             @map("expires_at")
+  createdAt  DateTime             @default(now()) @map("created_at")
+  verifiedAt DateTime?            @map("verified_at")
+
+  @@map("verification_codes")
+}

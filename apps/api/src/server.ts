@@ -2,12 +2,15 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import pino from 'pino';
 import swaggerUi from 'swagger-ui-express';
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import authRouter from './routes/auth.routes.js';
+import userRouter from './routes/user.routes.js';
 
 dotenv.config();
 
@@ -23,7 +26,11 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(compression());
 app.use(
   rateLimit({
@@ -41,6 +48,10 @@ app.use((req, res, next) => {
   logger.info({ method: req.method, url: req.url, ip: req.ip }, 'request');
   next();
 });
+
+// Auth Routes
+app.use('/v1/auth', authRouter);
+app.use('/v1/users', userRouter);
 
 // Health endpoint
 app.get('/health', (req, res) => {
