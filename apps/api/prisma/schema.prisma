@@ -162,20 +162,28 @@ enum InventoryStatus {
 }
 
 model InventoryUnit {
-  id            String          @id @default(uuid()) @db.Uuid
-  productId     String          @map("product_id") @db.Uuid
-  product       Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  serialNumber  String?         @map("serial_number")
-  inventoryCode String          @unique @map("inventory_code")
-  barcode       String?
-  qrCode        String?         @map("qr_code")
-  status        InventoryStatus @default(available)
-  branch        String          @default("Main")
-  purchaseDate  DateTime?       @map("purchase_date")
-  condition     String          @default("excellent")
-  availability  Boolean         @default(true)
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
+  id                  String          @id @default(uuid()) @db.Uuid
+  productId           String          @map("product_id") @db.Uuid
+  product             Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  serialNumber        String?         @map("serial_number")
+  inventoryCode       String          @unique @map("inventory_code")
+  barcode             String?
+  qrCode              String?         @map("qr_code")
+  status              InventoryStatus @default(available)
+  branch              String          @default("Main") // purchase branch
+  purchasePrice       Decimal?        @map("purchase_price") @db.Decimal(12, 2)
+  purchaseDate        DateTime?       @map("purchase_date")
+  condition           String          @default("excellent")
+  conditionNotes      String?         @map("condition_notes")
+  maintenanceDueDate  DateTime?       @map("maintenance_due_date")
+  lastMaintenanceDate DateTime?       @map("last_maintenance_date")
+  currentBranch       String          @default("Main") @map("current_branch")
+  currentLocation     String?         @map("current_location")
+  lockerNumber        String?         @map("locker_number")
+  remarks             String?
+  availability        Boolean         @default(true)
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
 
   @@map("inventory_units")
 }

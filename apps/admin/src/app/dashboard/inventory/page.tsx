@@ -12,8 +12,16 @@ interface InventoryUnitItem {
   qrCode: string | null;
   status: 'available' | 'reserved' | 'rented' | 'maintenance' | 'damaged';
   branch: string;
+  purchasePrice: string | null;
   purchaseDate: string | null;
   condition: string;
+  conditionNotes: string | null;
+  maintenanceDueDate: string | null;
+  lastMaintenanceDate: string | null;
+  currentBranch: string;
+  currentLocation: string | null;
+  lockerNumber: string | null;
+  remarks: string | null;
   availability: boolean;
   createdAt: string;
   product: { name: string; type: string };
@@ -46,6 +54,12 @@ export default function InventoryPage() {
   const [editCondition, setEditCondition] = useState('');
   const [editBranch, setEditBranch] = useState('');
   const [editSerial, setEditSerial] = useState('');
+  const [editPurchasePrice, setEditPurchasePrice] = useState('');
+  const [editConditionNotes, setEditConditionNotes] = useState('');
+  const [editCurrentBranch, setEditCurrentBranch] = useState('');
+  const [editCurrentLocation, setEditCurrentLocation] = useState('');
+  const [editLockerNumber, setEditLockerNumber] = useState('');
+  const [editRemarks, setEditRemarks] = useState('');
 
   const [loadingAction, setLoadingAction] = useState(false);
 
@@ -101,6 +115,12 @@ export default function InventoryPage() {
     setEditCondition(item.condition);
     setEditBranch(item.branch);
     setEditSerial(item.serialNumber || '');
+    setEditPurchasePrice(item.purchasePrice || '');
+    setEditConditionNotes(item.conditionNotes || '');
+    setEditCurrentBranch(item.currentBranch || '');
+    setEditCurrentLocation(item.currentLocation || '');
+    setEditLockerNumber(item.lockerNumber || '');
+    setEditRemarks(item.remarks || '');
     setIsEditOpen(true);
   };
 
@@ -142,7 +162,13 @@ export default function InventoryPage() {
         status: editStatus,
         condition: editCondition,
         branch: editBranch,
-        serialNumber: editSerial || undefined
+        serialNumber: editSerial || undefined,
+        purchasePrice: editPurchasePrice !== '' ? parseFloat(editPurchasePrice) : null,
+        conditionNotes: editConditionNotes || null,
+        currentBranch: editCurrentBranch || undefined,
+        currentLocation: editCurrentLocation || null,
+        lockerNumber: editLockerNumber || null,
+        remarks: editRemarks || null
       });
       if (response.data.success) {
         setSuccess('Inventory unit status updated successfully.');
@@ -210,7 +236,7 @@ export default function InventoryPage() {
               <tr>
                 <th className="px-6 py-4">Item Code / Serials</th>
                 <th className="px-6 py-4">Product Catalog Link</th>
-                <th className="px-6 py-4">Location</th>
+                <th className="px-6 py-4">Location (Locker)</th>
                 <th className="px-6 py-4">Status & Condition</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -243,8 +269,10 @@ export default function InventoryPage() {
                       <div className="font-semibold text-slate-300">{item.product?.name}</div>
                       <div className="text-xs text-slate-400 capitalize">Type: {item.product?.type}</div>
                     </td>
-                    <td className="px-6 py-4 text-slate-300">
-                      <div>Branch: {item.branch}</div>
+                    <td className="px-6 py-4 text-slate-300 text-xs">
+                      <div>Branch: {item.currentBranch}</div>
+                      {item.currentLocation && <div>Area: {item.currentLocation}</div>}
+                      {item.lockerNumber && <div>Locker: {item.lockerNumber}</div>}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col space-y-1.5">
@@ -382,24 +410,38 @@ export default function InventoryPage() {
 
       {/* Edit Inventory Modal */}
       {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-8">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl my-auto">
             <h2 className="text-xl font-bold text-slate-100 mb-6">Inspect / Edit Inventory Unit</h2>
             <form onSubmit={handleUpdateUnit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-300">Serial Number (SN)</label>
-                <input
-                  type="text"
-                  value={editSerial}
-                  onChange={(e) => setEditSerial(e.target.value)}
-                  placeholder="e.g. SN-KOK-12345"
-                  className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Serial Number (SN)</label>
+                  <input
+                    type="text"
+                    value={editSerial}
+                    onChange={(e) => setEditSerial(e.target.value)}
+                    placeholder="e.g. SN-KOK-12345"
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Purchase Price ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editPurchasePrice}
+                    onChange={(e) => setEditPurchasePrice(e.target.value)}
+                    placeholder="120.00"
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300">Branch Location</label>
+                  <label className="block text-xs font-medium text-slate-300">Origin Purchase Branch</label>
                   <input
                     type="text"
                     required
@@ -424,14 +466,70 @@ export default function InventoryPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Physical Quality Condition</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCondition}
+                    onChange={(e) => setEditCondition(e.target.value)}
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Condition Notes</label>
+                  <input
+                    type="text"
+                    value={editConditionNotes}
+                    onChange={(e) => setEditConditionNotes(e.target.value)}
+                    placeholder="e.g. minor scratches"
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Current Branch</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCurrentBranch}
+                    onChange={(e) => setEditCurrentBranch(e.target.value)}
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Current Location (Area)</label>
+                  <input
+                    type="text"
+                    value={editCurrentLocation}
+                    onChange={(e) => setEditCurrentLocation(e.target.value)}
+                    placeholder="e.g. Row C"
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300">Locker Number</label>
+                  <input
+                    type="text"
+                    value={editLockerNumber}
+                    onChange={(e) => setEditLockerNumber(e.target.value)}
+                    placeholder="e.g. L-12"
+                    className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-medium text-slate-300">Physical Quality Condition</label>
-                <input
-                  type="text"
-                  required
-                  value={editCondition}
-                  onChange={(e) => setEditCondition(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500"
+                <label className="block text-xs font-medium text-slate-300">Remarks / Maintenance Notes</label>
+                <textarea
+                  value={editRemarks}
+                  onChange={(e) => setEditRemarks(e.target.value)}
+                  placeholder="Additional diagnostic details..."
+                  rows={2}
+                  className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 text-sm outline-none transition focus:border-blue-500 resize-none"
                 />
               </div>
 

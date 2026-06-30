@@ -53,8 +53,16 @@ const inventoryUnitSchema = z.object({
   qrCode: z.string().optional(),
   status: z.nativeEnum(InventoryStatus).optional(),
   branch: z.string().optional(),
+  purchasePrice: z.number().nonnegative().optional().nullable(),
   purchaseDate: z.string().datetime().optional().nullable(),
-  condition: z.string().optional()
+  condition: z.string().optional(),
+  conditionNotes: z.string().optional().nullable(),
+  maintenanceDueDate: z.string().datetime().optional().nullable(),
+  lastMaintenanceDate: z.string().datetime().optional().nullable(),
+  currentBranch: z.string().optional(),
+  currentLocation: z.string().optional().nullable(),
+  lockerNumber: z.string().optional().nullable(),
+  remarks: z.string().optional().nullable()
 });
 
 const bulkGenerateSchema = z.object({
@@ -599,7 +607,25 @@ export async function createInventoryUnit(req: AuthenticatedRequest, res: Respon
     const parse = inventoryUnitSchema.safeParse(req.body);
     if (!parse.success) return res.status(422).json({ success: false, error: { code: 'VALIDATION_FAILED', details: parse.error.format() } });
 
-    const { productId, serialNumber, inventoryCode, barcode, qrCode, status, branch, purchaseDate, condition } = parse.data;
+    const {
+      productId,
+      serialNumber,
+      inventoryCode,
+      barcode,
+      qrCode,
+      status,
+      branch,
+      purchasePrice,
+      purchaseDate,
+      condition,
+      conditionNotes,
+      maintenanceDueDate,
+      lastMaintenanceDate,
+      currentBranch,
+      currentLocation,
+      lockerNumber,
+      remarks
+    } = parse.data;
 
     const product = await prisma.product.findFirst({ where: { id: productId, deletedAt: null } });
     if (!product) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Product profile not found.' } });
@@ -616,8 +642,16 @@ export async function createInventoryUnit(req: AuthenticatedRequest, res: Respon
         qrCode: qrCode || `sportnest-qr-${inventoryCode}`,
         status: status || InventoryStatus.available,
         branch: branch || 'Main',
+        purchasePrice,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
         condition: condition || 'excellent',
+        conditionNotes,
+        maintenanceDueDate: maintenanceDueDate ? new Date(maintenanceDueDate) : null,
+        lastMaintenanceDate: lastMaintenanceDate ? new Date(lastMaintenanceDate) : null,
+        currentBranch: currentBranch || branch || 'Main',
+        currentLocation,
+        lockerNumber,
+        remarks,
         availability: status === InventoryStatus.available || status === undefined
       }
     });
@@ -687,7 +721,24 @@ export async function updateInventoryUnit(req: AuthenticatedRequest, res: Respon
     const parse = inventoryUnitSchema.safeParse(req.body);
     if (!parse.success) return res.status(422).json({ success: false, error: { code: 'VALIDATION_FAILED', details: parse.error.format() } });
 
-    const { serialNumber, inventoryCode, barcode, qrCode, status, branch, purchaseDate, condition } = parse.data;
+    const {
+      serialNumber,
+      inventoryCode,
+      barcode,
+      qrCode,
+      status,
+      branch,
+      purchasePrice,
+      purchaseDate,
+      condition,
+      conditionNotes,
+      maintenanceDueDate,
+      lastMaintenanceDate,
+      currentBranch,
+      currentLocation,
+      lockerNumber,
+      remarks
+    } = parse.data;
 
     const unit = await prisma.inventoryUnit.findUnique({ where: { id } });
     if (!unit) return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Inventory unit not found.' } });
@@ -708,8 +759,16 @@ export async function updateInventoryUnit(req: AuthenticatedRequest, res: Respon
         qrCode,
         status,
         branch,
+        purchasePrice,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
         condition,
+        conditionNotes,
+        maintenanceDueDate: maintenanceDueDate ? new Date(maintenanceDueDate) : undefined,
+        lastMaintenanceDate: lastMaintenanceDate ? new Date(lastMaintenanceDate) : undefined,
+        currentBranch,
+        currentLocation,
+        lockerNumber,
+        remarks,
         availability: isAvailable
       }
     });
