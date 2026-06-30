@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import authRouter from './routes/auth.routes.js';
 import userRouter from './routes/user.routes.js';
 import inventoryRouter from './routes/inventory.routes.js';
+import rentalRouter from './routes/rental.routes.js';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use((req, res, next) => {
 app.use('/v1/auth', authRouter);
 app.use('/v1/users', userRouter);
 app.use('/v1', inventoryRouter);
+app.use('/v1', rentalRouter);
 
 // Health endpoint
 app.get('/health', (req, res) => {

@@ -15,6 +15,7 @@
     "@sportnest/ui": "workspace:*",
     "@sportnest/utils": "workspace:*",
     "autoprefixer": "^10.4.0",
+    "axios": "^1.18.1",
     "next": "^15.0.0",
     "postcss": "^8.4.0",
     "react": "^18.3.0",

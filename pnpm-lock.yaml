@@ -238,6 +238,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.0
         version: 10.5.2(postcss@8.5.16)
+      axios:
+        specifier: ^1.18.1
+        version: 1.18.1
       next:
         specifier: ^15.0.0
         version: 15.5.19(react-dom@18.3.1(react@18.3.1))(react@18.3.1)

@@ -35,6 +35,8 @@ model User {
   deletedAt         DateTime?          @map("deleted_at")
   refreshTokens     RefreshToken[]
   verificationCodes VerificationCode[]
+  rentalOrders      RentalOrder[]
+  inspections       RentalInspection[]
 
   @@map("users")
 }
@@ -137,6 +139,7 @@ model Product {
   deletedAt       DateTime?       @map("deleted_at")
   images          ProductImage[]
   inventoryUnits  InventoryUnit[]
+  rentalOrderItems RentalOrderItem[]
 
   @@map("products")
 }
@@ -186,4 +189,108 @@ model InventoryUnit {
   updatedAt           DateTime        @updatedAt @map("updated_at")
 
   @@map("inventory_units")
+  rentalOrderItems    RentalOrderItem[]
+  rentalHistories     RentalHistory[]
+}
+
+enum RentalOrderStatus {
+  pending_payment
+  reserved
+  active
+  returned
+  cancelled
+  overdue
+}
+
+model RentalOrder {
+  id                     String            @id @default(uuid()) @db.Uuid
+  customerId             String            @map("customer_id") @db.Uuid
+  customer               User              @relation(fields: [customerId], references: [id])
+  totalAmount            Decimal           @map("total_amount") @db.Decimal(12, 2)
+  depositAmount          Decimal           @map("deposit_amount") @db.Decimal(12, 2)
+  status                 RentalOrderStatus @default(pending_payment)
+  pickupSlot             DateTime          @map("pickup_slot")
+  digitalAgreementUrl    String?           @map("digital_agreement_url")
+  pickupVerificationCode String?           @map("pickup_verification_code")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+  deletedAt              DateTime?         @map("deleted_at")
+  items                  RentalOrderItem[]
+  payments               RentalPayment[]
+
+  @@map("rental_orders")
+}
+
+model RentalOrderItem {
+  id              String             @id @default(uuid()) @db.Uuid
+  rentalOrderId   String             @map("rental_order_id") @db.Uuid
+  rentalOrder     RentalOrder        @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+  productId       String             @map("product_id") @db.Uuid
+  product         Product            @relation(fields: [productId], references: [id])
+  inventoryUnitId String?            @map("inventory_unit_id") @db.Uuid
+  inventoryUnit   InventoryUnit?     @relation(fields: [inventoryUnitId], references: [id])
+  startDate       DateTime           @map("start_date")
+  endDate         DateTime           @map("end_date")
+  rentalRate      Decimal            @map("rental_rate") @db.Decimal(12, 2)
+  securityDeposit Decimal            @map("security_deposit") @db.Decimal(12, 2)
+  returnedAt      DateTime?          @map("returned_at")
+  inspections     RentalInspection[]
+  penalties       RentalPenalty[]
+
+  @@map("rental_order_items")
+}
+
+model RentalPayment {
+  id            String      @id @default(uuid()) @db.Uuid
+  rentalOrderId String      @map("rental_order_id") @db.Uuid
+  rentalOrder   RentalOrder @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+  amount        Decimal     @db.Decimal(12, 2)
+  paymentMethod String      @map("payment_method")
+  transactionId String      @map("transaction_id")
+  status        String
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@map("rental_payments")
+}
+
+enum RentalInspectionType {
+  pickup
+  return
+}
+
+model RentalInspection {
+  id                String               @id @default(uuid()) @db.Uuid
+  rentalOrderItemId String               @map("rental_order_item_id") @db.Uuid
+  rentalOrderItem   RentalOrderItem      @relation(fields: [rentalOrderItemId], references: [id], onDelete: Cascade)
+  inspectorId       String               @map("inspector_id") @db.Uuid
+  inspector         User                 @relation(fields: [inspectorId], references: [id])
+  type              RentalInspectionType
+  conditionScore    String               @map("condition_score") // excellent, good, fair, poor
+  notes             String?
+  createdAt         DateTime             @default(now()) @map("created_at")
+
+  @@map("rental_inspections")
+}
+
+model RentalPenalty {
+  id                String          @id @default(uuid()) @db.Uuid
+  rentalOrderItemId String          @map("rental_order_item_id") @db.Uuid
+  rentalOrderItem   RentalOrderItem @relation(fields: [rentalOrderItemId], references: [id], onDelete: Cascade)
+  amount            Decimal         @db.Decimal(12, 2)
+  reason            String          // late, damage, lost
+  status            String          // unpaid, paid
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  @@map("rental_penalties")
+}
+
+model RentalHistory {
+  id              String        @id @default(uuid()) @db.Uuid
+  inventoryUnitId String        @map("inventory_unit_id") @db.Uuid
+  inventoryUnit   InventoryUnit @relation(fields: [inventoryUnitId], references: [id], onDelete: Cascade)
+  eventType       String        @map("event_type") // purchased, reserved, rented, returned, maintenance, available
+  eventDetails    String?       @map("event_details")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@map("rental_histories")
 }
